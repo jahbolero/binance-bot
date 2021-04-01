@@ -50,14 +50,14 @@ module.exports = {
         indicators.getIndicatorValue(
           symbol,
           constants.TIMEFRAME.MINUTE5,
-          constants.PERIOD.EMA21,
+          constants.PERIOD.EMA8,
           constants.INDICATOR.EMA
         ),
       ]);
       var price = parseFloat(indicatorResults[0].bidPrice);
-      var ema21 = indicatorResults[1].value;
-      if(price < ema21){
-          console.log(`price:${price}|ema21:${ema21}`)
+      var ema8 = indicatorResults[1].value;
+      if(price < ema8){
+          console.log(`price:${price}|ema21:${ema8}`)
           return true;
       }
       return false;
