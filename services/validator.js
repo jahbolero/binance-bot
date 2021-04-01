@@ -39,6 +39,7 @@ module.exports = {
     var ema21 = indicatorResults[3].value;
     var rsi = indicatorResults[4].value;
     if((price > ema8 && price > ema12 && price > ema21) && rsi >= 50){
+        console.log(`price:${price}|ema8:${ema8}|ema12:${ema12}|ema21:${ema21}|rsi:${rsi}`)
         return true;
     }
     return false;
@@ -53,9 +54,10 @@ module.exports = {
           constants.INDICATOR.EMA
         ),
       ]);
-      var price = parseFloat(indicatorResults[0].askPrice);
+      var price = parseFloat(indicatorResults[0].bidPrice);
       var ema21 = indicatorResults[1].value;
       if(price < ema21){
+          console.log(`price:${price}|ema21:${ema21}`)
           return true;
       }
       return false;
