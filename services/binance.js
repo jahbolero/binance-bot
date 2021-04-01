@@ -20,7 +20,6 @@ module.exports = {
     },
     BinanceSell:async({symbol,quantity}) => {
         try{
-            var 
             var result = await binance.marketSell(symbol+constants.FIAT,quantity);
             return result;
         }catch(error){
