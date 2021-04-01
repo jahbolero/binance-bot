@@ -1,0 +1,63 @@
+var binance = require("./binance");
+var indicators = require("./indicators");
+var constants = require("../shared/constants");
+
+module.exports = {
+  ValidateBuy: async (symbol) => {
+    
+    var indicatorResults = await Promise.all([
+      binance.GetSymbolPrice(symbol),
+      indicators.getIndicatorValue(
+        symbol,
+        constants.TIMEFRAME.MINUTE5,
+        constants.PERIOD.EMA8,
+        constants.INDICATOR.EMA
+      ),
+      indicators.getIndicatorValue(
+        symbol,
+        constants.TIMEFRAME.MINUTE5,
+        constants.PERIOD.EMA12,
+        constants.INDICATOR.EMA
+      ),
+      indicators.getIndicatorValue(
+        symbol,
+        constants.TIMEFRAME.MINUTE5,
+        constants.PERIOD.EMA21,
+        constants.INDICATOR.EMA
+      ),
+      indicators.getIndicatorValue(
+        symbol,
+        constants.TIMEFRAME.MINUTE5,
+        null,
+        constants.INDICATOR.RSI
+      ),
+    ]);
+    
+    var price = parseFloat(indicatorResults[0].askPrice);
+    var ema8 = indicatorResults[1].value;
+    var ema12 = indicatorResults[2].value;
+    var ema21 = indicatorResults[3].value;
+    var rsi = indicatorResults[4].value;
+    if((price > ema8 && price > ema12 && price > ema21) && rsi >= 50){
+        return true;
+    }
+    return false;
+  },
+  ValidateSell: async (symbol) => {
+    var indicatorResults = await Promise.all([
+        binance.GetSymbolPrice(symbol),
+        indicators.getIndicatorValue(
+          symbol,
+          constants.TIMEFRAME.MINUTE5,
+          constants.PERIOD.EMA21,
+          constants.INDICATOR.EMA
+        ),
+      ]);
+      var price = parseFloat(indicatorResults[0].askPrice);
+      var ema21 = indicatorResults[1].value;
+      if(price < ema21){
+          return true;
+      }
+      return false;
+  },
+};
