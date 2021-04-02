@@ -3,6 +3,7 @@ var router = express.Router();
 var binance = require("../services/binance");
 var scheduler = require("../services/scheduler");
 var validator = require("../services/validator");
+var screener = require("../services/screener");
 
 router.post('/buy', async function(req, res, next) {
   console.log(req.body)
@@ -41,5 +42,17 @@ router.get('/stop', async function(req, res, next) {
 router.get('/validate', async function(req, res, next) {
   res.send(validator.ValidateBuy("ADA"));
 });
+
+router.get('/screen', async function(req, res, next) {
+  try {
+    let data = await screener.authorize();
+    console.log(data);
+    res.send(JSON.stringify(data));
+  } catch(err) {
+      res.send(err, 'error getting screens');
+  }
+});
+
+
 
 module.exports = router;
