@@ -11,7 +11,7 @@ module.exports = {
     if (running == false) {
       console.log(`Starting Scheduler for ${order.symbol} at ${order.quantity} quantity`);
       running = true;
-       job = schedule.scheduleJob('0/30 * * * *', async () => {
+       job = schedule.scheduleJob('0/6 * * * *', async () => {
         if(!havePosition){
           console.log("Running buy validators")
           if(await validator.ValidateBuy(order.symbol)){
