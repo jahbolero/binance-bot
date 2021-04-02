@@ -9,25 +9,25 @@ module.exports = {
       binance.GetSymbolPrice(symbol),
       indicators.getIndicatorValue(
         symbol,
-        constants.TIMEFRAME.MINUTE5,
+        constants.TIMEFRAME.MINUTE30,
         constants.PERIOD.EMA8,
         constants.INDICATOR.EMA
       ),
       indicators.getIndicatorValue(
         symbol,
-        constants.TIMEFRAME.MINUTE5,
+        constants.TIMEFRAME.MINUTE30,
         constants.PERIOD.EMA12,
         constants.INDICATOR.EMA
       ),
       indicators.getIndicatorValue(
         symbol,
-        constants.TIMEFRAME.MINUTE5,
+        constants.TIMEFRAME.MINUTE30,
         constants.PERIOD.EMA21,
         constants.INDICATOR.EMA
       ),
       indicators.getIndicatorValue(
         symbol,
-        constants.TIMEFRAME.MINUTE5,
+        constants.TIMEFRAME.MINUTE30,
         null,
         constants.INDICATOR.RSI
       ),
@@ -38,7 +38,7 @@ module.exports = {
     var ema12 = indicatorResults[2].value;
     var ema21 = indicatorResults[3].value;
     var rsi = indicatorResults[4].value;
-    if((price > ema8 && price > ema12 && price > ema21) && rsi >= 50){
+    if((price > ema8 && ema8 > ema12 && ema12 > ema21) && rsi >= 50){
         console.log(`price:${price}|ema8:${ema8}|ema12:${ema12}|ema21:${ema21}|rsi:${rsi}`)
         return true;
     }
@@ -49,15 +49,15 @@ module.exports = {
         binance.GetSymbolPrice(symbol),
         indicators.getIndicatorValue(
           symbol,
-          constants.TIMEFRAME.MINUTE5,
+          constants.TIMEFRAME.MINUTE30,
           constants.PERIOD.EMA8,
           constants.INDICATOR.EMA
         ),
       ]);
       var price = parseFloat(indicatorResults[0].bidPrice);
-      var ema8 = indicatorResults[1].value;
+      var ema21 = indicatorResults[1].value;
       if(price < ema8){
-          console.log(`price:${price}|ema21:${ema8}`)
+          console.log(`price:${price}|ema21:${ema21}`)
           return true;
       }
       return false;

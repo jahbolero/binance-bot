@@ -6,7 +6,8 @@ module.exports ={
     FIAT:"USDT",
     TIMEFRAME:{
         HOUR1:"1h",
-        MINUTE5:"5m"
+        MINUTE5:"5m",
+        MINUTE30:"30m"
     },
     PERIOD:{
         EMA8:8,
