@@ -4,6 +4,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+let screener = require('./services/screener');
 
 var apiRouter = require('./routes/api');
 
@@ -36,5 +37,16 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.send('error');
 });
+
+app.listen(3000, () => {
+  console.log('port 3000');
+  screener;
+});
+
+app.get('/auth', function(req, res){
+  console.log(req.body);
+  console.log('test');
+})
+
 
 module.exports = app;
