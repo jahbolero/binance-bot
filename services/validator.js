@@ -56,7 +56,7 @@ module.exports = {
       ]);
       var price = parseFloat(indicatorResults[0].bidPrice);
       var ema21 = indicatorResults[1].value;
-      if(price < ema8){
+      if(price < ema21){
           console.log(`price:${price}|ema21:${ema21}`)
           return true;
       }
