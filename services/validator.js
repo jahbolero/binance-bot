@@ -50,7 +50,7 @@ module.exports = {
         indicators.getIndicatorValue(
           symbol,
           constants.TIMEFRAME.MINUTE30,
-          constants.PERIOD.EMA8,
+          constants.PERIOD.EMA21,
           constants.INDICATOR.EMA
         ),
       ]);
