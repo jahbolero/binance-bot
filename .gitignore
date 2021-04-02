@@ -105,3 +105,6 @@ dist
 
 #google credentials
 credentials.json
+
+#user token
+token.json
