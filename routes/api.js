@@ -36,7 +36,8 @@ router.get('/start', async function(req, res, next) {
   res.send(scheduler.start(req.body))
 });
 router.get('/stop', async function(req, res, next) {
-  res.send(scheduler.stop(req.body))
+  var data = await scheduler.stop(req.body)
+  res.send(data);
 });
 router.get('/validate', async function(req, res, next) {
   res.send(validator.ValidateBuy("ADA"));
