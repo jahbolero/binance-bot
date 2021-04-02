@@ -38,15 +38,14 @@ app.use(function(err, req, res, next) {
   res.send('error');
 });
 
-app.listen(3000, () => {
-  console.log('port 3000');
-  screener;
-});
+// app.listen(3000, async () => {
+//   console.log('port 3000');
+//   getScreens();
+// });
 
-app.get('/auth', function(req, res){
-  console.log(req.body);
-  console.log('test');
-})
-
+// async function getScreens(){
+//   let data = await screener.getScreens();
+//   console.log(data);
+// }
 
 module.exports = app;
