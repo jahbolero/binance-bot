@@ -11,41 +11,54 @@ const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
 const TOKEN_PATH = 'token.json';
 
 
-
-// Load client secrets from a local file.
-getScreens = async function(){
-  let credentials = await getCredentials();
-  let data = authorize(JSON.parse(content), findMessages);
-  console.log(data);
-}
-
-function getCredentials(){
-  fs.readFile('credentials.json', (err, content) => {
-      if (err) return console.log('Error loading client secret file:', err);
-      // Authorize a client with credentials, then call the Gmail API.
-      console.log(content, 'credentials');
-      // authorize(JSON.parse(content), findMessages);
-  });
-}
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
  * given callback function.
  * @param {Object} credentials The authorization client credentials.
  * @param {function} callback The callback to call with the authorized client.
  */
-function authorize(credentials, callback) {
-  const {client_secret, client_id, redirect_uris} = credentials.installed;
-  const oAuth2Client = new google.auth.OAuth2(
-      client_id, client_secret, redirect_uris[0]);
-
-  // Check if we have previously stored a token.
-  fs.readFile(TOKEN_PATH, (err, token) => {
-    if (err) return getNewToken(oAuth2Client, callback);
-    oAuth2Client.setCredentials(JSON.parse(token));
-    let data = callback(oAuth2Client);
-    return data;
+function authorize() {
+  
+  return new Promise(async (resolve, reject) =>{
+    let credentials = JSON.parse(process.env.credentials);
+    const {client_secret, client_id, redirect_uris} = credentials.installed;
+    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+  
+    let token = JSON.parse(process.env.token);
+    if(token){
+      try{
+        oAuth2Client.setCredentials(token);
+        let data = await findMessages(oAuth2Client);
+        data = await removeNoise(data);
+        resolve(data);
+      } catch(err) {
+        reject(err);
+      }
+    } else {
+      getNewToken(oAuth2Client, findMessages);
+    } 
   });
+  // fs.readFile(TOKEN_PATH, (err, token) => {
+  //   if (err) return getNewToken(oAuth2Client, findMessages);
+  //   console.log(JSON.parse(token));
+  //   oAuth2Client.setCredentials(JSON.parse(token));
+  //   findMessages(oAuth2Client);
+  // });
 }
+
+function removeNoise(data){
+  let ret = [];
+  console.log(data, 'leng');
+  data.forEach(coin => {
+    let temp = coin.replace(',', '');
+    if(temp.slice(temp.length - 4) === 'USDT'){
+      ret.push(temp);
+    }
+  });
+
+  return ret;
+}
+
 
 /**
  * Get and store new token after prompting for user authorization, and then
@@ -84,48 +97,63 @@ function getNewToken(oAuth2Client, callback) {
  * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
  */
 function findMessages(auth) {
-  const gmail = google.gmail({version: 'v1', auth});
-  gmail.users.messages.list({
-    userId: 'me',
-    labelIds: 'INBOX'
-  }, (err, res) => {
-    if (err) return console.log('The API returned an error: ' + err);
-    const messages = res.data.messages;
-    if (messages) {
-        return printMessage(messages, auth)
-    } else {
-      console.log('No messages found.');
-    }
+
+  return new Promise((resolve, reject) => {
+    const gmail = google.gmail({version: 'v1', auth});
+    gmail.users.messages.list({
+      userId: 'me',
+      labelIds: 'INBOX'
+    }, async (err, res) => {
+      if (err) return console.log('The API returned an error: ' + err);
+      const messages = res.data.messages;
+      if (messages) {
+        try{
+          let data = await printMessage(messages, auth);
+          resolve(data);
+        } catch(err){
+          reject(err);
+        }
+      } else {
+        reject(console.log('No messages found.'));
+      }
+    });
   });
 }
 
 async function printMessage(messageID,auth) {
-  let promises = [];
-  let ret = [];
-  var gmail = google.gmail('v1');
-  // gmail.users.messages.get({ auth: auth, userId: 'me', id:messageID[0].id }, function(err, response) {
-  //   console.log(response.data.snippet);
-  //   messageID.splice(0,1);
-  //   if(messageID.length > 0)
-  //     printMessage(messageID,auth);
-  //   else {
-  //     console.log("All Done");
-  //   }
-  // });
-
-  messageID.forEach(async id => {
-    promises.push((filterMessages(id.id, gmail,messageID, auth)));
-  });
-
-  Promise.all(promises).then(x => {
-    x.forEach(data => {
-      let temp = data.data.snippet.split(" ");
-      temp = temp.filter(x => x.includes('BINANCE'));
-      ret = [...ret, ...temp];
+  return new Promise((resolve, reject) => {
+    let promises = [];
+    let ret = [];
+    var gmail = google.gmail('v1');
+  
+    
+    gmail.users.messages.get({ auth: auth, userId: 'me', id:messageID[0].id }, function(err, response) {
+      messageID.splice(0,1);
+      if(messageID.length > 0)
+        printMessage(messageID,auth);
+      else {
+        console.log("All Done");
+      }
     });
-    let unique = new Set(ret);
-    console.log(unique);
-    return unique;
+  
+    messageID.forEach(async id => {
+      promises.push((filterMessages(id.id, gmail,messageID, auth)));
+    });
+  
+    
+    try {
+      Promise.all(promises).then(x => {
+        x.forEach(data => {
+          let temp = data.data.snippet.split(" ");
+          temp = temp.filter(x => x.includes('BINANCE') && x.length > 8);
+          ret = [...ret, ...temp];
+        });
+        let unique = new Set(ret);
+        resolve(unique);
+      });
+    } catch(err){
+      reject('failed to get data')
+    }
   });
 }
 
@@ -154,5 +182,5 @@ function listLabels(auth) {
 }
 
 module.exports = {
-  getScreens: getScreens
+  authorize: authorize
 };
