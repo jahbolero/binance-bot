@@ -11,7 +11,7 @@ router.post('/buy', async function(req, res, next) {
     res.status(400)
     res.send("Error");
   }else{
-    res.send(await binance.BinanceBuy(req.body));
+    res.send(await binance.BinanceBuy(req.body.symbol,req.body.quantity));
   }
   
 });
@@ -22,7 +22,7 @@ router.post('/sell', async function(req, res, next) {
     res.status(400)
     res.send("Error");
   }else{
-    res.send(await binance.BinanceSell(req.body));
+    res.send(await binance.BinanceSell(req.body.symbol,req.body.quantity));
   }
   
 });
@@ -40,8 +40,11 @@ router.get('/stop', async function(req, res, next) {
   var data = await scheduler.stop(req.body)
   res.send(data);
 });
-router.get('/validate', async function(req, res, next) {
-  res.send(validator.ValidateBuy("ADA"));
+router.post('/validateBuy', async function(req, res, next) {
+  res.send(validator.ValidateBuy515(req.body));
+});
+router.post('/validateSell', async function(req, res, next) {
+  res.send(validator.ValidateSell515(req.body));
 });
 
 router.get('/screen', async function(req, res, next) {
