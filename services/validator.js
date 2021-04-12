@@ -24,7 +24,7 @@ module.exports = {
       let minQty = global.minimums[order.symbol+constants.FIAT].minQty;
       let stepSize = global.minimums[order.symbol+constants.FIAT].stepSize;
       var quantity = (order.amount * 0.999) / price;
-      if ( quantity < minQty ) quantity = minQty;
+      if ( quantity < minQty ) return;
       if ( price * quantity < minNotional ) {
         quantity = minNotional / price;
       }

@@ -7,23 +7,21 @@ var runningJobs = [];
 module.exports = {
   start: (orders) => {
       orders.forEach(order => {
-        if(runningJobs.find(job=>job.name === order.symbol) == undefined){
+        if(runningJobs.find(job=>job.job.name === order.symbol) == undefined){
           console.log(`Starting Scheduler for ${order.symbol} at ${order.amount} amount`);
           var job = schedule.scheduleJob(order.symbol,'0/5 * * * *', async () =>{validatorJob(order)});
-          runningJobs.push(job);
-          return `Starting Scheduler for ${order.symbol} at ${order.amount} amount`;
+          runningJobs.push({job,balance:order.balance});
         }else{
-          return `There is an existing bot for ${order.symbol}`;
+          console.log(`There is an existing bot for ${order.symbol}`);
         }
       })
   },
   stop: async (orders) => {
     orders.forEach( async order => {
-      var runningJob = runningJobs.find(job=>job.name === order.symbol);
+      var runningJob = runningJobs.find(job=>job.job.name === order.symbol);
       if(runningJob === undefined){
-       return "No job for this symbol";
+        console.log(`No job for ${order.symbol}`);
       }
-
       var position = positions.find(position => position.symbol === order.symbol)
       if(position){
         let stepSize = global.minimums[order.symbol+constants.FIAT].stepSize;
@@ -31,28 +29,30 @@ module.exports = {
         quantity = binance.convertQuantityStep(quantity,stepSize);
         var result = await binance.BinanceSell(order.symbol,quantity);
         if(result.status == constants.FILLED){
-          runningJob.cancel();
-          runningJobs = runningJobs.filter(job => job.name !== order.symbol);
+
           console.log(`Stopped and sold ${order.symbol}`);
-          return "Sold remaining position, stopped scheduler";
         }else{
-          console.log("Couldn't fill order");
+          console.log(`Couldn't fill order ${order.symbol}`);
         }
       }else{
-        return "No position, stopped scheduler";
+         console.log(`No ${order.symbol} position, stopped scheduler`);
       }
+      runningJob.cancel();
+      runningJobs = runningJobs.filter(job => job.job.name !== order.symbol);
     })
   },
 };
 async function validatorJob(order){
   var position = positions.find(position => position.symbol === order.symbol)
   if(position == undefined){
+    runningJob = runningJobs.find(job => job.job.name === order.symbol);
+    order.amount = runningJob == undefined? order.amount : runningJob.balance;
     console.log(`Running buy validators for ${order.symbol}`);
     quantity = await validator.ValidateBuy515(order)
     if(quantity){
-        console.log("Buying");
         var result = await binance.BinanceBuy(order.symbol,quantity);
         if(result.status ===constants.FILLED){
+        console.log(`Buying symbol:${order.symbol}|total:${result.cummulativeQuoteQty}|`)
         var newPosition = {symbol:order.symbol,quantity:parseFloat(result.executedQty)};
         positions.push(newPosition);
       }
@@ -62,9 +62,11 @@ async function validatorJob(order){
     order.quantity = position.quantity;
     var quantity = await validator.ValidateSell515(order);
     if(quantity){
-        console.log("Selling");
         var result = await binance.BinanceSell(order.symbol,quantity);
         if(result.status === constants.FILLED){
+        console.log(`Selling symbol:${order.symbol}|total:${result.cummulativeQuoteQty}|`)
+        runningJob = runningJobs.find(job => job.job.name === order.symbol);
+        runningJob.balance = parseFloat(result.cummulativeQuoteQty);
         positions = positions.filter(position => position.symbol != order.symbol);
         }
     }
