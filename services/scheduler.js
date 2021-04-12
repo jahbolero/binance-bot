@@ -9,7 +9,7 @@ module.exports = {
       orders.forEach(order => {
         if(runningJobs.find(job=>job.job.name === order.symbol) == undefined){
           console.log(`Starting Scheduler for ${order.symbol} at ${order.amount} amount`);
-          var job = schedule.scheduleJob(order.symbol,'0/5 * * * *', async () =>{validatorJob(order)});
+          var job = schedule.scheduleJob(order.symbol,'0/1 * * * *', async () =>{validatorJob(order)});
           runningJobs.push({job,balance:order.balance});
         }else{
           console.log(`There is an existing bot for ${order.symbol}`);
@@ -21,6 +21,7 @@ module.exports = {
       var runningJob = runningJobs.find(job=>job.job.name === order.symbol);
       if(runningJob === undefined){
         console.log(`No job for ${order.symbol}`);
+        return;
       }
       var position = positions.find(position => position.symbol === order.symbol)
       if(position){
@@ -37,7 +38,7 @@ module.exports = {
       }else{
          console.log(`No ${order.symbol} position, stopped scheduler`);
       }
-      runningJob.cancel();
+      runningJob.job.cancel();
       runningJobs = runningJobs.filter(job => job.job.name !== order.symbol);
     })
   },
@@ -46,7 +47,7 @@ async function validatorJob(order){
   var position = positions.find(position => position.symbol === order.symbol)
   if(position == undefined){
     runningJob = runningJobs.find(job => job.job.name === order.symbol);
-    order.amount = runningJob == undefined? order.amount : runningJob.balance;
+    order.amount = runningJob.balance == undefined? order.amount : runningJob.balance;
     console.log(`Running buy validators for ${order.symbol}`);
     quantity = await validator.ValidateBuy515(order)
     if(quantity){
