@@ -23,7 +23,7 @@ module.exports = {
       let minNotional = global.minimums[order.symbol+constants.FIAT].minNotional;
       let minQty = global.minimums[order.symbol+constants.FIAT].minQty;
       let stepSize = global.minimums[order.symbol+constants.FIAT].stepSize;
-      var quantity = (order.amount * 0.999) / price;
+      var quantity = order.amount / price;
       if ( quantity < minQty ) return;
       if ( price * quantity < minNotional ) {
         quantity = minNotional / price;
@@ -40,7 +40,7 @@ module.exports = {
     ])
     var balance = parseFloat(await binanceService.getBalance(order.symbol));
     let stepSize = global.minimums[order.symbol+constants.FIAT].stepSize;
-    var quantity = (order.quantity * 0.999);
+    var quantity = order.quantity;
     if(balance < quantity) quantity = balance;
     var price = parseFloat(indicatorResults[0].bidPrice);
     var ma5 = indicatorResults[1].value;

@@ -9,7 +9,7 @@ module.exports = {
       orders.forEach(order => {
         if(runningJobs.find(job=>job.job.name === order.symbol) == undefined){
           console.log(`Starting Scheduler for ${order.symbol} at ${order.amount} amount`);
-          var job = schedule.scheduleJob(order.symbol,'0/1 * * * *', async () =>{validatorJob(order)});
+          var job = schedule.scheduleJob(order.symbol,'0/5 * * * *', async () =>{validatorJob(order)});
           runningJobs.push({job,balance:order.balance});
         }else{
           console.log(`There is an existing bot for ${order.symbol}`);
