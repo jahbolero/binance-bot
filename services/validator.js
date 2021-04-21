@@ -1,75 +1,28 @@
-var binanceService = require("./binance");
+var binance = require("./binance");
 var indicators = require("./indicators");
 var constants = require("../shared/constants");
 
-
 module.exports = {
-  ValidateBuy515: async(order) => {
-    var indicatorResults = await Promise.all([
-      binanceService.GetSymbolPrice(order.symbol),
-      indicators.getIndicatorValue(order.symbol,constants.TIMEFRAME.MINUTE5,5,constants.INDICATOR.MA),
-      indicators.getIndicatorValue(order.symbol,constants.TIMEFRAME.MINUTE5,15,constants.INDICATOR.MA),
-      indicators.getIndicatorValue(order.symbol,constants.TIMEFRAME.MINUTE5,null,constants.INDICATOR.STOCHRSI)
-    ])
-    var price = parseFloat(indicatorResults[0].askPrice);
-    var ma5 = indicatorResults[1].value;
-    var ma15 = indicatorResults[2].value;
-    var stochRsiFast = indicatorResults[3].valueFastK;
-    var percentDiff = (((price - ma5)/ma5)*100);
-    if((price > ma5 && price > ma15 && ma5 > ma15)){
-      if(percentDiff > 0.8 && stochRsiFast > 50){
-        return;
-      }
-      let minNotional = global.minimums[order.symbol+constants.FIAT].minNotional;
-      let minQty = global.minimums[order.symbol+constants.FIAT].minQty;
-      let stepSize = global.minimums[order.symbol+constants.FIAT].stepSize;
-      var quantity = order.amount / price;
-      if ( quantity < minQty ) return;
-      if ( price * quantity < minNotional ) {
-        quantity = minNotional / price;
-      }
-      quantity = binanceService.convertQuantityStep(quantity, stepSize);
-      return quantity;
-    }
-    return;
-  },
-  ValidateSell515: async(order) => {
-    var indicatorResults = await Promise.all([
-      binanceService.GetSymbolPrice(order.symbol),
-      indicators.getIndicatorValue(order.symbol,constants.TIMEFRAME.MINUTE5,5,constants.INDICATOR.MA),
-    ])
-    var balance = parseFloat(await binanceService.getBalance(order.symbol));
-    let stepSize = global.minimums[order.symbol+constants.FIAT].stepSize;
-    var quantity = order.quantity;
-    if(balance < quantity) quantity = balance;
-    var price = parseFloat(indicatorResults[0].bidPrice);
-    var ma5 = indicatorResults[1].value;
-    if(price < ma5){
-      quantity = binanceService.convertQuantityStep(parseFloat(quantity), stepSize);
-      return quantity;
-    }
-    return;
-  },
   ValidateBuy: async (symbol) => {
     
     var indicatorResults = await Promise.all([
-      binanceService.GetSymbolPrice(symbol),
+      binance.GetSymbolPrice(symbol),
       indicators.getIndicatorValue(
         symbol,
         constants.TIMEFRAME.MINUTE30,
-        8,
+        constants.PERIOD.EMA8,
         constants.INDICATOR.EMA
       ),
       indicators.getIndicatorValue(
         symbol,
         constants.TIMEFRAME.MINUTE30,
-        12,
+        constants.PERIOD.EMA12,
         constants.INDICATOR.EMA
       ),
       indicators.getIndicatorValue(
         symbol,
         constants.TIMEFRAME.MINUTE30,
-        21,
+        constants.PERIOD.EMA21,
         constants.INDICATOR.EMA
       ),
       indicators.getIndicatorValue(
@@ -93,11 +46,11 @@ module.exports = {
   },
   ValidateSell: async (symbol) => {
     var indicatorResults = await Promise.all([
-        binanceService.GetSymbolPrice(symbol),
+        binance.GetSymbolPrice(symbol),
         indicators.getIndicatorValue(
           symbol,
           constants.TIMEFRAME.MINUTE30,
-          21,
+          constants.PERIOD.EMA21,
           constants.INDICATOR.EMA
         ),
       ]);
@@ -110,14 +63,3 @@ module.exports = {
       return false;
   },
 };
-
-function decimalCount(num){
-   // Convert to String
-   const numStr = String(num);
-   // String Contains Decimal
-   if (numStr.includes('.')) {
-      return numStr.split('.')[1].length;
-   };
-   // String Does Not Contain Decimal
-   return 0;
-}
